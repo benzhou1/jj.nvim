@@ -4,12 +4,14 @@ local M = {}
 --- Terminal configuration
 --- @class jj.ui.terminal.opts
 --- @field cursor_render_delay integer The delay in ms when cursor rerendering the terminal state (default: 10ms). If you're loosing the column of the cursor try adding more delay. I currently did not find a better way to do so due to async handling of the ouptut in the terminal
+--- @field env table<string, string> Additional environment variables to set for the terminal jobs
 
 local buffer = require("jj.core.buffer")
 
 --- @type jj.ui.terminal.opts
 local opts = {
 	cursor_render_delay = 10,
+	env = {},
 }
 
 --- @class jj.ui.terminal.state
@@ -295,13 +297,13 @@ function M.run(cmd, keymaps)
 		pty = true,
 		width = vim.api.nvim_win_get_width(win),
 		height = vim.api.nvim_win_get_height(win),
-		env = {
+		env = vim.tbl_deep_extend("force", {
 			TERM = "xterm-256color",
 			PAGER = "cat",
 			DELTA_PAGER = "cat",
 			COLORTERM = "truecolor",
 			DFT_BACKGROUND = "light",
-		},
+		}, opts.env),
 		on_stdout = function(_, data)
 			if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) or not state.chan then
 				return
